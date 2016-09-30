@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System;
+using System.Security.Cryptography;
 
 namespace RSA_Example
 {
@@ -9,8 +10,8 @@ namespace RSA_Example
         //                  => aspnet_regiis -pc "CONTAINER_NAME_HERE" -exp
         // (B) To Export:   => aspnet_regiis -px "CONTAINER_NAME_HERE" c:\temp\mykeys.xml -pri
 
-        // The xml file containing the keys is oncluded in this project, see 'mykeys.xml'.
-        // We could also have used the method below to generate the keys 'ProgrammaticRsaKeys()'.
+        // An xml file containing generated RSA keys is included in this project, see 'mykeys.xml'.
+        // We could also have used the method below to programatically generate the keys 'ProgrammaticRsaKeys()'.
 
 
         private static string encryptionKey = "<RSAKeyValue><Modulus>wf53UqRfW77/agVrmzM8u6l1cxm4icbhCLPHnGeAJv2GWo490WIV772qcuV7M0YntTB9n6xbySzUap8yIIslub7JzadV0tadM4WJ2m2HNfA+SOStT+TQmF3nfEEoBUlD1CkmJM7JBJ4N/u0ibExRuonH7NCdzTS2UkgjF2dSzaE=</Modulus><Exponent>AQAB</Exponent></RSAKeyValue>";
@@ -20,7 +21,8 @@ namespace RSA_Example
 
         static void Main(string[] args)
         {
-            ProgrammaticRsaKeys();
+            //ProgrammaticRsaKeys();
+            PopulateCsp();
         }
 
 
@@ -37,8 +39,23 @@ namespace RSA_Example
         private static string ProgrammaticRsaKeys()
         {
             RSACryptoServiceProvider myRSA = new RSACryptoServiceProvider();
-            RSAParameters publicKey = myRSA.ExportParameters(false);
+            RSAParameters publicKey = myRSA.ExportParameters(false); // false: do not export private key            
             return myRSA.ToXmlString(true);
+        }
+
+        private static void PopulateCsp()
+        {
+            // N.B. Run the above commands at the beginning of this class
+            //      Observe the contents of the output file
+            //      Then run this method and check to see if both Modulus keys are the same !
+
+            CspParameters parms = new CspParameters();
+            parms.KeyContainerName = "TestKeys";
+            parms.Flags = CspProviderFlags.UseMachineKeyStore;
+
+            RSACryptoServiceProvider crypto = new RSACryptoServiceProvider(parms);
+            RSAParameters publicKey = crypto.ExportParameters(true);
+            System.Console.WriteLine(Convert.ToBase64String(publicKey.Modulus));
         }
     }
 }
