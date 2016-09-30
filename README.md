@@ -26,7 +26,7 @@ Developed with Visual Studio 2015 Community
 |-------|
 |Generating a container for RSA key pairs using command line |
 |Exporting the container to an xml file |
-|Importing the container for use with a 'RSACryptoServiceProvider' object |
+|Use a 'CspParameters' object to populate the appropriate properties of an 'RSACryptoServiceProvider' object with the RSA Keys generated |
 
 ---
 
