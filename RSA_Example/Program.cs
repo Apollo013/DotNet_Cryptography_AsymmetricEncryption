@@ -23,6 +23,7 @@ namespace RSA_Example
             var encryptor = CreateCypher(encryptionKey);
             var decryptor = CreateCypher(decryptionKey);
 
+
             // Encrypt / Decrypt
             string encryptedText = Encrypt(encryptor, plainText);
             string decryptedText = Decrypt(decryptor, encryptedText);
@@ -40,8 +41,8 @@ namespace RSA_Example
         private static string Encrypt(RSACryptoServiceProvider encryptor, string plainText)
         {
             byte[] plainBytes = Encoding.UTF8.GetBytes(plainText);
-            byte[] encryptedText = encryptor.Encrypt(plainBytes, true);
-            return Convert.ToBase64String(encryptedText);
+            byte[] encryptedBytes = encryptor.Encrypt(plainBytes, true);
+            return Convert.ToBase64String(encryptedBytes);
         }
 
         private static string Decrypt(RSACryptoServiceProvider decryptor, string encryptedText)
@@ -66,7 +67,7 @@ namespace RSA_Example
         }
 
         /// <summary>
-        /// Prints arbitrary title to console
+        /// Prints an arbitrary title to console
         /// </summary>
         /// <param name="title"></param>
         /// <param name="message"></param>
@@ -87,7 +88,11 @@ namespace RSA_Example
         private static string ProgrammaticRsaKeys()
         {
             RSACryptoServiceProvider crypto = new RSACryptoServiceProvider();
-            RSAParameters publicKey = crypto.ExportParameters(false); // false: do not export private key            
+            RSAParameters publicKey = crypto.ExportParameters(true); // false: do not export private key 
+
+            Console.WriteLine(crypto.ToXmlString(true));
+            Console.WriteLine(crypto.ToXmlString(false));
+
             return crypto.ToXmlString(true);
         }
 
