@@ -6,26 +6,26 @@ namespace Digital_Signature_Example
 {
     public class RSACipher
     {
+        public string RSAKey { get; set; }
+        public string PublicKey { get; set; }
+        public string HashAlgorithm { get; set; } = "SHA1";
 
-        public string SenderKeySet { get; set; }
-        public string ReceiverKeySet { get; set; }
-
-        private RSACryptoServiceProvider GetSenderCipher()
+        private RSACryptoServiceProvider GetEncryptor()
         {
             RSACryptoServiceProvider crypto = new RSACryptoServiceProvider();
-            crypto.FromXmlString(SenderKeySet);
+            crypto.FromXmlString(RSAKey);
             return crypto;
         }
 
-        private RSACryptoServiceProvider GetReceiverCipher()
+        private RSACryptoServiceProvider GetDecryptor()
         {
             RSACryptoServiceProvider crypto = new RSACryptoServiceProvider();
-            crypto.FromXmlString(ReceiverKeySet);
+            crypto.FromXmlString(PublicKey);
             return crypto;
         }
 
         /// <summary>
-        /// Hashes the encrypted message
+        /// Generates a hash for the encrypted message
         /// </summary>
         /// <param name="cipherBytes"></param>
         /// <returns></returns>
@@ -43,25 +43,34 @@ namespace Digital_Signature_Example
         /// <returns></returns>
         private byte[] CalculateSignatureBytes(byte[] hashToSign)
         {
-            RSAPKCS1SignatureFormatter signatureFormatter = new RSAPKCS1SignatureFormatter(GetSenderCipher());
-            signatureFormatter.SetHashAlgorithm("SHA1");
-            byte[] signature = signatureFormatter.CreateSignature(hashToSign);
+            RSAPKCS1SignatureFormatter formatter = new RSAPKCS1SignatureFormatter(GetEncryptor());
+            formatter.SetHashAlgorithm(HashAlgorithm);
+            byte[] signature = formatter.CreateSignature(hashToSign);
             return signature;
         }
 
+        /// <summary>
+        /// Verifies the message signature
+        /// </summary>
+        /// <param name="computedHash"></param>
+        /// <param name="signatureBytes"></param>
         private void VerifySignature(byte[] computedHash, byte[] signatureBytes)
         {
-            RSACryptoServiceProvider senderCipher = GetSenderCipher();
+            RSACryptoServiceProvider senderCipher = GetEncryptor();
             RSAPKCS1SignatureDeformatter deformatter = new RSAPKCS1SignatureDeformatter(senderCipher);
-            deformatter.SetHashAlgorithm("SHA1");
+            deformatter.SetHashAlgorithm(HashAlgorithm);
             if (!deformatter.VerifySignature(computedHash, signatureBytes))
             {
                 throw new ApplicationException("Signature did not match from sender");
             }
         }
 
-
-        public DigitalSignatureResult BuildSignedMessage(string message)
+        /// <summary>
+        /// Encrypts a message and signs it
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public DigitalSignatureResult ConstructMessage(string message)
         {
             /*
              * (1) Encrypt the message
@@ -69,7 +78,7 @@ namespace Digital_Signature_Example
              * (3) Sign it
              */
             byte[] messageBytes = Encoding.UTF8.GetBytes(message);
-            byte[] cipherBytes = GetReceiverCipher().Encrypt(messageBytes, false);
+            byte[] cipherBytes = GetDecryptor().Encrypt(messageBytes, false);
             byte[] cipherHash = ComputeHashForMessage(cipherBytes);
             byte[] signatureHash = CalculateSignatureBytes(cipherHash);
 
@@ -78,15 +87,22 @@ namespace Digital_Signature_Example
             return new DigitalSignatureResult() { CipherText = cipher, SignatureText = signature };
         }
 
+        /// <summary>
+        /// Decrypts a message and verifies it's signature
+        /// </summary>
+        /// <param name="signatureResult"></param>
+        /// <returns></returns>
         public string ExtractMessage(DigitalSignatureResult signatureResult)
         {
+            // Get message bytes
             byte[] cipherTextBytes = Convert.FromBase64String(signatureResult.CipherText);
             byte[] signatureBytes = Convert.FromBase64String(signatureResult.SignatureText);
+
             byte[] recomputedHash = ComputeHashForMessage(cipherTextBytes);
             VerifySignature(recomputedHash, signatureBytes);
-            byte[] plainTextBytes = GetReceiverCipher().Decrypt(cipherTextBytes, false);
+            byte[] messageBytes = GetDecryptor().Decrypt(cipherTextBytes, false);
 
-            return Encoding.UTF8.GetString(plainTextBytes);
+            return Encoding.UTF8.GetString(messageBytes);
         }
     }
 }
