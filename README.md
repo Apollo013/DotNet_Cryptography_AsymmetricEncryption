@@ -30,6 +30,7 @@ Developed with Visual Studio 2015 Community
 |Ecrypting / decrypting using 'RSACryptoServiceProvider'|
 |Generating a signature using 'RSAPKCS1SignatureFormatter' |
 |Verifying a signature using 'RSAPKCS1SignatureDeformatter' | 
+|Computing a hash using SHA1 |
 
 ---
 
