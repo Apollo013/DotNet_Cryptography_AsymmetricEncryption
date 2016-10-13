@@ -1,5 +1,5 @@
 # DotNet_Cryptography_AsymmetricEncryption
-A console app demonstrating asymmetric encryption
+A couple of console apps demonstrating asymmetric encryption & digital signing.
 
 ---
 
